@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "filesystem": {
+      "command": "python",
+      "args": ["C:\\Users\\alok4\\Desktop\\MCPs\\file_mcp_server.py"],
+      "disabled": false,
+      "autoApprove": []
+    }
+  }
+}

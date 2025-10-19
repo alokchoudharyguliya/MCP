@@ -1,0 +1,22 @@
+[project]
+name = "mcps"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "fastapi>=0.119.0",
+    "fastmcp>=2.12.4",
+    "mcp[cli]>=1.18.0",
+    "openai>=2.5.0",
+    "python-dotenv>=1.1.1",
+    "requests>=2.32.5",
+    "uvicorn>=0.38.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "black>=23.0.0",
+    "flake8>=6.0.0",
+]
