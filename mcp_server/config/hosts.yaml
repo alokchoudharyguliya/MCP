@@ -1,0 +1,9 @@
+# Copy to hosts.yaml and edit
+targets:
+  pi-lan:
+    host: 10.22.96.113
+    port: 22
+    username: alok
+    private_key_path: C:\Users\alok4\.ssh\id_ed25519
+    # Optional: known_hosts_path: /home/youruser/.ssh/known_hosts
+    # Optional: connect_timeout: 10

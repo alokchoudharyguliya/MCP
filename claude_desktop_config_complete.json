@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "mcp-complete-server": {
+      "command": "python",
+      "args": ["-m", "mcp_server.mcp_complete_server"],
+      "cwd": "C:\\Users\\alok4\\Desktop\\MCPs",
+      "env": {
+        "PYTHONPATH": "C:\\Users\\alok4\\Desktop\\MCPs"
+      }
+    }
+  }
+}

@@ -1,2 +1,34 @@
 .venv
 .env
+
+# SSH MCP Server
+config/hosts.yaml
+*.pem
+*.key
+id_*
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log

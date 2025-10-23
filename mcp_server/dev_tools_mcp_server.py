@@ -15,6 +15,18 @@ from mcp.server import Server
 from mcp.server.stdio import stdio_server
 import mcp.types as types
 
+# Try to import the typed InitializationOptions for your SDK version.
+# Some versions may name it slightly differently; add fallbacks if needed.
+InitializationOptions = None
+for candidate in (
+    "InitializationOptions",       # common recent name
+    "InitializeOptions",           # possible variant
+    "InitializationParams",        # older or alternate naming
+):
+    if hasattr(types, candidate):
+        InitializationOptions = getattr(types, candidate)
+        break
+
 # Initialize MCP Server
 server = Server("tool-integration-mcp")
 
@@ -22,9 +34,8 @@ server = Server("tool-integration-mcp")
 
 class CodeExecutor:
     """Execute Python, JavaScript, and Bash code safely"""
-    
     TIMEOUT = 30
-    
+
     @staticmethod
     def execute_python(code: str) -> dict:
         try:
@@ -44,7 +55,7 @@ class CodeExecutor:
             return {"error": "Code execution timed out"}
         except Exception as e:
             return {"error": str(e)}
-    
+
     @staticmethod
     def execute_javascript(code: str) -> dict:
         try:
@@ -64,7 +75,7 @@ class CodeExecutor:
             return {"error": "Code execution timed out"}
         except Exception as e:
             return {"error": str(e)}
-    
+
     @staticmethod
     def execute_bash(command: str) -> dict:
         try:
@@ -85,7 +96,7 @@ class CodeExecutor:
             return {"error": "Command execution timed out"}
         except Exception as e:
             return {"error": str(e)}
-    
+
     @staticmethod
     def execute(language: str, code: str) -> dict:
         if language == "python":
@@ -102,9 +113,9 @@ class CodeExecutor:
 
 class SearchEngine:
     """Search the web and local documents"""
-    
+
     @staticmethod
-    def web_search(query: str, num_results: int = 5) -> dict:
+    def WebSearch(query: str, num_results: int = 5) -> dict:
         try:
             url = "https://api.duckduckgo.com/"
             params = {
@@ -113,12 +124,12 @@ class SearchEngine:
                 "no_html": 1,
                 "max_results": num_results
             }
-            
+
             response = requests.get(url, params=params, timeout=10)
             data = response.json()
-            
+
             results = []
-            
+
             if "Abstract" in data and data["Abstract"]:
                 results.append({
                     "type": "abstract",
@@ -126,7 +137,7 @@ class SearchEngine:
                     "content": data["Abstract"],
                     "url": data.get("AbstractURL", "")
                 })
-            
+
             for topic in data.get("RelatedTopics", [])[:num_results]:
                 if "Text" in topic:
                     results.append({
@@ -135,7 +146,7 @@ class SearchEngine:
                         "content": topic["Text"],
                         "url": topic.get("FirstURL", "")
                     })
-            
+
             return {
                 "success": True,
                 "query": query,
@@ -144,16 +155,16 @@ class SearchEngine:
             }
         except Exception as e:
             return {"error": str(e)}
-    
+
     @staticmethod
     def search_local_files(query: str, search_dir: str) -> dict:
         try:
             results = []
             search_path = Path(search_dir)
-            
+
             if not search_path.exists():
                 return {"error": f"Directory not found: {search_dir}"}
-            
+
             for file_path in search_path.rglob("*.txt"):
                 try:
                     with open(file_path, 'r', encoding='utf-8', errors='ignore') as f:
@@ -168,7 +179,7 @@ class SearchEngine:
                             })
                 except:
                     pass
-            
+
             return {
                 "success": True,
                 "query": query,
@@ -184,7 +195,7 @@ class SearchEngine:
 
 class GitTools:
     """Git operations"""
-    
+
     @staticmethod
     def get_status(repo_path: str) -> dict:
         try:
@@ -204,7 +215,7 @@ class GitTools:
             }
         except Exception as e:
             return {"error": str(e)}
-    
+
     @staticmethod
     def get_log(repo_path: str, num_commits: int = 5) -> dict:
         try:
@@ -224,7 +235,7 @@ class GitTools:
             }
         except Exception as e:
             return {"error": str(e)}
-    
+
     @staticmethod
     def pull_changes(repo_path: str) -> dict:
         try:
@@ -243,7 +254,7 @@ class GitTools:
             }
         except Exception as e:
             return {"error": str(e)}
-    
+
     @staticmethod
     def commit_changes(repo_path: str, message: str, files: list = None) -> dict:
         try:
@@ -251,7 +262,7 @@ class GitTools:
                 subprocess.run(["git", "add"] + files, cwd=repo_path, capture_output=True, timeout=10)
             else:
                 subprocess.run(["git", "add", "-A"], cwd=repo_path, capture_output=True, timeout=10)
-            
+
             result = subprocess.run(
                 ["git", "commit", "-m", message],
                 cwd=repo_path,
@@ -268,7 +279,7 @@ class GitTools:
             }
         except Exception as e:
             return {"error": str(e)}
-    
+
     @staticmethod
     def push_changes(repo_path: str) -> dict:
         try:
@@ -293,25 +304,31 @@ class GitTools:
 
 class DockerTools:
     """Docker operations"""
-    
+
     @staticmethod
     def list_containers(running_only: bool = False) -> dict:
         try:
             cmd = ["docker", "ps"]
             if not running_only:
                 cmd.append("-a")
-            cmd.append("--format=json")
-            
+            cmd.append("--format={{json .}}")
+
             result = subprocess.run(cmd, capture_output=True, text=True, timeout=10)
-            
+
             if result.returncode == 0:
-                containers = json.loads(result.stdout) if result.stdout else []
+                stdout = result.stdout.strip()
+                containers = []
+                if stdout:
+                    for line in stdout.splitlines():
+                        line = line.strip()
+                        if line:
+                            containers.append(json.loads(line))
                 return {"success": True, "containers": containers, "count": len(containers)}
             else:
                 return {"error": result.stderr}
         except Exception as e:
             return {"error": str(e)}
-    
+
     @staticmethod
     def start_container(container_id: str) -> dict:
         try:
@@ -328,7 +345,7 @@ class DockerTools:
             }
         except Exception as e:
             return {"error": str(e)}
-    
+
     @staticmethod
     def stop_container(container_id: str) -> dict:
         try:
@@ -345,7 +362,7 @@ class DockerTools:
             }
         except Exception as e:
             return {"error": str(e)}
-    
+
     @staticmethod
     def get_logs(container_id: str, tail: int = 50) -> dict:
         try:
@@ -370,12 +387,11 @@ class DockerTools:
 @server.call_tool()
 async def handle_tool_call(name: str, arguments: dict) -> Any:
     """Route tool calls"""
-    
     try:
-        if name == "execute_code":
+        if name == "Code Execution":
             return CodeExecutor.execute(arguments.get("language"), arguments.get("code"))
-        elif name == "web_search":
-            return SearchEngine.web_search(arguments.get("query"), arguments.get("num_results", 5))
+        elif name == "Web Search":
+            return SearchEngine.WebSearch(arguments.get("query"), arguments.get("num_results", 5))
         elif name == "search_local":
             return SearchEngine.search_local_files(arguments.get("query"), arguments.get("directory"))
         elif name == "git_status":
@@ -406,7 +422,7 @@ async def handle_tool_call(name: str, arguments: dict) -> Any:
 
 tools = [
     types.Tool(
-        name="execute_code",
+        name="Code Execution",
         description="Execute code in Python, JavaScript, or Bash",
         inputSchema={
             "type": "object",
@@ -418,7 +434,7 @@ tools = [
         }
     ),
     types.Tool(
-        name="web_search",
+        name="Web Search",
         description="Search the web for information",
         inputSchema={
             "type": "object",
@@ -468,37 +484,38 @@ async def list_tools() -> list[types.Tool]:
 
 # ============ START SERVER ============
 
-# if __name__ == "__main__":
-#     import logging
-#     logging.basicConfig(level=logging.INFO)
-    
-#     print("Starting Tool Integration MCP Server...", file=sys.stderr, flush=True)
-#     print(f"Tools available: {len(tools)}", file=sys.stderr, flush=True)
-    
-#     # Run with stdio transport
-#     stdio_server(server).run()
-
-# if __name__ == "__main__":
-#     import logging
-#     logging.basicConfig(level=logging.INFO)
-    
-#     print("Starting Tool Integration MCP Server...", file=sys.stderr, flush=True)
-#     print(f"Tools available: {len(tools)}", file=sys.stderr, flush=True)
-    
-#     # Run with stdio transport
-#     asyncio.run(stdio_server(server))
-
-
 if __name__ == "__main__":
     import logging
     logging.basicConfig(level=logging.INFO)
-    
+
     print("Starting Tool Integration MCP Server...", file=sys.stderr, flush=True)
     print(f"Tools available: {len(tools)}", file=sys.stderr, flush=True)
-    
-    # Run with stdio transport
+
     async def main():
-        async with stdio_server(server):
-            print("Server is running...", file=sys.stderr, flush=True)
-    
+        # Build typed initialization options if available; otherwise fall back to a dict
+        init_kwargs = {
+            "protocolVersion": "2025-06-18",
+            "capabilities": {},  # advertise server capabilities if you have them
+            "serverInfo": {"name": "tool-integration-mcp", "version": "1.0.0"},
+        }
+
+        if InitializationOptions is not None:
+            try:
+                initialization_options = InitializationOptions(**init_kwargs)
+            except TypeError:
+                # If the dataclass has different field names, try a minimal set
+                minimal = {k: v for k, v in init_kwargs.items() if k in getattr(InitializationOptions, "__annotations__", {})}
+                initialization_options = InitializationOptions(**minimal)
+        else:
+            # Older SDKs may accept a dict
+            initialization_options = init_kwargs
+
+        async with stdio_server() as (read_stream, write_stream):
+            # Pass typed options when available to avoid 'dict has no attribute' errors
+            await server.run(
+                read_stream,
+                write_stream,
+                initialization_options=initialization_options
+            )
+
     asyncio.run(main())

@@ -1,0 +1,18 @@
+{
+    "mcpServers": {
+        "ssh-server": {
+            "command": "uv",
+            "args": [
+                "run",
+                "--python",
+                "C:\\Users\\alok4\\anaconda3\\envs\\GPU_ENV\\python.exe",
+                "-m",
+                "mcp_server.mcp_ssh_server"
+            ],
+            "cwd": "C:\\Users\\alok4\\Desktop\\MCPs",
+            "env": {
+                "MCP_PI_CONFIG": "config/hosts.yaml"
+            }
+        }
+    }
+}

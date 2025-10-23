@@ -1,0 +1,54 @@
+security:
+  api_keys:
+    - "replace-with-a-long-random-api-key"
+  jwt_public_key_pem: null  # optionally paste a PEM public key for JWT verification
+  cors_allow_origins:
+    - "http://localhost:3000"
+    - "http://localhost:7800"
+  rate_limit_per_minute: 120
+
+allowlist:
+  enabled_tools:
+    - ssh_exec
+    - scp_put
+    - scp_get
+    - tmux_ensure
+    - tmux_send_keys
+    - tmux_kill
+    - systemd_service
+    - django_manage
+    - django_runserver_tmux
+
+  # Only allow safe, expected commands via ssh_exec:
+  ssh_exec_allowed_prefixes:
+    - "echo "
+    - "ls"
+    - "pwd"
+    - "uname"
+    - "df "
+    - "free"
+    - "journalctl "
+    - "git "
+    - "python manage.py "
+    - "pip "
+    - "systemctl "
+    - "tmux "
+    - "ps "
+    - "whoami"
+    - "id"
+    - "cd "      # only works in combination with our exec prefix; keep conservative
+  ssh_exec_denied_substrings:
+    - "rm -rf"
+    - ":(){:|:&};:"  # fork bomb
+    - "mkfs"
+    - "dd if="
+    - ">/dev/sd"
+    - "shutdown"
+    - "reboot"
+
+  per_target_tools: {}
+    # Optional: restrict tools per host
+    # pi-lan:
+    #   - ssh_exec
+    #   - django_manage
+    #   - django_runserver_tmux
