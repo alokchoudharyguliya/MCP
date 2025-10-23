@@ -54,60 +54,85 @@
 #     #   - django_runserver_tmux
 
 
-security:
-  api_keys:
-    - "your-strong-random-api-key"
-  cors_allow_origins:
-    - "http://localhost:7800"
-  rate_limit_per_minute: 120
+# security:
+#   api_keys:
+#     - "kklWgaHK48zQXttGl35YMQYZMgtntrqJ"
+#   cors_allow_origins:
+#     - "http://localhost:7800"
+#   rate_limit_per_minute: 120
 
-allowlist:
-  enabled_tools:
-    - ssh_exec
-    - scp_put
-    - scp_get
-    - tmux_ensure
-    - tmux_send_keys
-    - tmux_kill
-    - systemd_service
-    - django_manage
-    - django_runserver_tmux
-    - git_status
-    - git_checkout
-    - git_pull
-    - deploy_hook
+# allowlist:
+#   enabled_tools:
+#     - ssh_exec
+#     - scp_put
+#     - scp_get
+#     - tmux_ensure
+#     - tmux_send_keys
+#     - tmux_kill
+#     - systemd_service
+#     - django_manage
+#     - django_runserver_tmux
+#     - git_status
+#     - git_checkout
+#     - git_pull
+#     - deploy_hook
+#     - gpio_write
+#     - gpio_read
+#     - gpio_pwm
+#     - macro_run
 
-  per_target_tools:
+#   per_target_tools:
+#     pi-lan:
+#       - git_status
+#       - git_checkout
+#       - git_pull
+#       - deploy_hook
+#       - django_manage
+#       - systemd_service
+#       - tmux_ensure
+#       - tmux_send_keys
+#       - tmux_kill
+#       - gpio_write
+#       - gpio_read
+#       - gpio_pwm
+#       - macro_run
+
+#   # keep ssh_exec very restricted; you may not need git here anymore
+#   ssh_exec_allowed_prefixes:
+#     - "echo "
+#     - "ls"
+#     - "pwd"
+#     - "uname"
+#     - "df "
+#     - "free"
+#     - "journalctl "
+#     - "systemctl "
+#     - "tmux "
+#     - "ps "
+#     - "whoami"
+#     - "id"
+#   ssh_exec_denied_substrings:
+#     - "rm -rf"
+#     - ":(){:|:&};:"
+#     - "mkfs"
+#     - "dd if="
+#     - ">/dev/sd"
+#     - "shutdown"
+#     - "reboot"
+
+gpio:
+  targets:
     pi-lan:
-      - git_status
-      - git_checkout
-      - git_pull
-      - deploy_hook
-      - django_manage
-      - systemd_service
-      - tmux_ensure
-      - tmux_send_keys
-      - tmux_kill
-
-  # keep ssh_exec very restricted; you may not need git here anymore
-  ssh_exec_allowed_prefixes:
-    - "echo "
-    - "ls"
-    - "pwd"
-    - "uname"
-    - "df "
-    - "free"
-    - "journalctl "
-    - "systemctl "
-    - "tmux "
-    - "ps "
-    - "whoami"
-    - "id"
-  ssh_exec_denied_substrings:
-    - "rm -rf"
-    - ":(){:|:&};:"
-    - "mkfs"
-    - "dd if="
-    - ">/dev/sd"
-    - "shutdown"
-    - "reboot"
+      agent_path: "/home/alok/gpio_agent.py"
+      default_mode: "BCM"     # or "BOARD"
+      allowed_pins:
+        BCM: [17, 18, 27, 22, 23, 24, 25]
+        BOARD: [11, 12, 13, 15, 16, 18, 22]
+      capabilities:
+        "17": ["read", "write"]
+        "18": ["read", "write", "pwm"]  # PWM-capable pin example
+        "27": ["read", "write"]
+        "22": ["read", "write"]
+        "23": ["read", "write"]
+        "24": ["read", "write"]
+        "25": ["read", "write"]

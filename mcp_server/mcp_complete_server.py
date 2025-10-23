@@ -22,6 +22,11 @@ from .tools.git_tools import (
     GitStatusRequest, GitCheckoutRequest, GitPullRequest, DeployHookRequest,
     TOOL_GIT_STATUS, TOOL_GIT_CHECKOUT, TOOL_GIT_PULL, TOOL_DEPLOY_HOOK
 )
+from .tools.gpio_tools import (
+    gpio_write, gpio_read, gpio_pwm, gpio_blink, macro_run,
+    GPIOWriteRequest, GPIOReadRequest, GPIOPWMRequest, GPIOBlinkRequest, GPIOMacroRequest,
+    TOOL_GPIO_WRITE, TOOL_GPIO_READ, TOOL_GPIO_PWM, TOOL_GPIO_BLINK, TOOL_GPIO_MACRO_RUN
+)
 from .tools.systemd import service_action, ServiceActionRequest
 from .tools.django import django_manage, django_runserver_tmux, DjangoManageRequest, DjangoRunserverRequest
 
@@ -389,6 +394,163 @@ async def list_tools() -> list[types.Tool]:
                 },
                 "required": ["target", "project_dir", "hook_script"]
             }
+        ),
+        
+        # GPIO Tools
+        types.Tool(
+            name="gpio_write",
+            description="Write to a GPIO pin on remote host",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "target": {
+                        "type": "string",
+                        "description": "Target name from config.targets"
+                    },
+                    "pin": {
+                        "type": "integer",
+                        "description": "GPIO pin number"
+                    },
+                    "value": {
+                        "type": "integer",
+                        "description": "Value to write (0 or 1)"
+                    },
+                    "mode": {
+                        "type": "string",
+                        "description": "GPIO mode (BCM or BOARD)"
+                    }
+                },
+                "required": ["target", "pin", "value"]
+            }
+        ),
+        
+        types.Tool(
+            name="gpio_read",
+            description="Read from a GPIO pin on remote host",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "target": {
+                        "type": "string",
+                        "description": "Target name from config.targets"
+                    },
+                    "pin": {
+                        "type": "integer",
+                        "description": "GPIO pin number"
+                    },
+                    "mode": {
+                        "type": "string",
+                        "description": "GPIO mode (BCM or BOARD)"
+                    }
+                },
+                "required": ["target", "pin"]
+            }
+        ),
+        
+        types.Tool(
+            name="gpio_pwm",
+            description="Set PWM on a GPIO pin on remote host",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "target": {
+                        "type": "string",
+                        "description": "Target name from config.targets"
+                    },
+                    "pin": {
+                        "type": "integer",
+                        "description": "GPIO pin number"
+                    },
+                    "frequency": {
+                        "type": "number",
+                        "description": "PWM frequency in Hz"
+                    },
+                    "duty_cycle": {
+                        "type": "number",
+                        "description": "Duty cycle (0.0 to 1.0)"
+                    },
+                    "mode": {
+                        "type": "string",
+                        "description": "GPIO mode (BCM or BOARD)"
+                    }
+                },
+                "required": ["target", "pin", "frequency", "duty_cycle"]
+            }
+        ),
+        
+        types.Tool(
+            name="gpio_blink",
+            description="Blink a GPIO pin (LED) a specified number of times",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "target": {
+                        "type": "string",
+                        "description": "Target name from config.targets"
+                    },
+                    "pin": {
+                        "type": "integer",
+                        "description": "GPIO pin number"
+                    },
+                    "count": {
+                        "type": "integer",
+                        "description": "Number of blinks",
+                        "default": 5
+                    },
+                    "on_time": {
+                        "type": "number",
+                        "description": "Seconds LED is ON",
+                        "default": 0.5
+                    },
+                    "off_time": {
+                        "type": "number",
+                        "description": "Seconds LED is OFF",
+                        "default": 0.5
+                    },
+                    "mode": {
+                        "type": "string",
+                        "description": "GPIO mode (BCM or BOARD)"
+                    }
+                },
+                "required": ["target", "pin"]
+            }
+        ),
+        
+        types.Tool(
+            name="macro_run",
+            description="Run a validated sequence of GPIO operations: write/read/pwm/blink",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "target": {
+                        "type": "string",
+                        "description": "Target name from config.targets"
+                    },
+                    "steps": {
+                        "type": "array",
+                        "description": "Array of GPIO operations to execute",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "op": {
+                                    "type": "string",
+                                    "description": "Operation type: write, read, pwm, or blink"
+                                },
+                                "data": {
+                                    "type": "object",
+                                    "description": "Operation-specific data"
+                                }
+                            },
+                            "required": ["op", "data"]
+                        }
+                    },
+                    "mode": {
+                        "type": "string",
+                        "description": "GPIO mode (BCM or BOARD)"
+                    }
+                },
+                "required": ["target", "steps"]
+            }
         )
     ]
 
@@ -427,10 +589,20 @@ async def call_tool(name: str, arguments: dict) -> list[types.TextContent]:
             return await _handle_git_pull(arguments, cfg)
         elif name == "deploy_hook":
             return await _handle_deploy_hook(arguments, cfg)
+        elif name == "gpio_write":
+            return await _handle_gpio_write(arguments, cfg)
+        elif name == "gpio_read":
+            return await _handle_gpio_read(arguments, cfg)
+        elif name == "gpio_pwm":
+            return await _handle_gpio_pwm(arguments, cfg)
+        elif name == "gpio_blink":
+            return await _handle_gpio_blink(arguments, cfg)
+        elif name == "macro_run":
+            return await _handle_macro_run(arguments, cfg)
         else:
             return [types.TextContent(
                 type="text",
-                text=f"Error: Unknown tool '{name}'. Available tools: ssh_exec, scp_put, scp_get, tmux_ensure, tmux_send_keys, tmux_kill, systemd_service, django_manage, django_runserver_tmux, git_status, git_checkout, git_pull, deploy_hook"
+                text=f"Error: Unknown tool '{name}'. Available tools: ssh_exec, scp_put, scp_get, tmux_ensure, tmux_send_keys, tmux_kill, systemd_service, django_manage, django_runserver_tmux, git_status, git_checkout, git_pull, deploy_hook, gpio_write, gpio_read, gpio_pwm, gpio_blink, macro_run"
             )]
     
     except Exception as e:
@@ -747,6 +919,131 @@ async def _handle_deploy_hook(arguments: dict, cfg) -> list[types.TextContent]:
     
     if result.stderr:
         response_text += f"STDERR:\n{result.stderr}\n"
+    
+    return [types.TextContent(type="text", text=response_text)]
+
+async def _handle_gpio_write(arguments: dict, cfg) -> list[types.TextContent]:
+    """Handle GPIO write tool"""
+    req = GPIOWriteRequest(**arguments)
+    
+    if req.target not in cfg.targets:
+        available_targets = ", ".join(cfg.targets.keys())
+        return [types.TextContent(
+            type="text",
+            text=f"Error: Unknown target '{req.target}'. Available targets: {available_targets}"
+        )]
+    
+    result = gpio_write(req)
+    
+    response_text = f"GPIO Write\n"
+    response_text += f"Pin: {req.pin}\n"
+    response_text += f"Value: {req.value}\n"
+    response_text += f"Mode: {req.mode or 'default'}\n"
+    response_text += f"Target: {req.target} ({cfg.targets[req.target].host})\n"
+    response_text += f"Success: {result.success}\n"
+    if result.error:
+        response_text += f"Error: {result.error}\n"
+    
+    return [types.TextContent(type="text", text=response_text)]
+
+async def _handle_gpio_read(arguments: dict, cfg) -> list[types.TextContent]:
+    """Handle GPIO read tool"""
+    req = GPIOReadRequest(**arguments)
+    
+    if req.target not in cfg.targets:
+        available_targets = ", ".join(cfg.targets.keys())
+        return [types.TextContent(
+            type="text",
+            text=f"Error: Unknown target '{req.target}'. Available targets: {available_targets}"
+        )]
+    
+    result = gpio_read(req)
+    
+    response_text = f"GPIO Read\n"
+    response_text += f"Pin: {req.pin}\n"
+    response_text += f"Mode: {req.mode or 'default'}\n"
+    response_text += f"Target: {req.target} ({cfg.targets[req.target].host})\n"
+    response_text += f"Value: {result.value}\n"
+    response_text += f"Success: {result.success}\n"
+    if result.error:
+        response_text += f"Error: {result.error}\n"
+    
+    return [types.TextContent(type="text", text=response_text)]
+
+async def _handle_gpio_pwm(arguments: dict, cfg) -> list[types.TextContent]:
+    """Handle GPIO PWM tool"""
+    req = GPIOPWMRequest(**arguments)
+    
+    if req.target not in cfg.targets:
+        available_targets = ", ".join(cfg.targets.keys())
+        return [types.TextContent(
+            type="text",
+            text=f"Error: Unknown target '{req.target}'. Available targets: {available_targets}"
+        )]
+    
+    result = gpio_pwm(req)
+    
+    response_text = f"GPIO PWM\n"
+    response_text += f"Pin: {req.pin}\n"
+    response_text += f"Frequency: {req.frequency} Hz\n"
+    response_text += f"Duty Cycle: {req.duty_cycle}\n"
+    response_text += f"Mode: {req.mode or 'default'}\n"
+    response_text += f"Target: {req.target} ({cfg.targets[req.target].host})\n"
+    response_text += f"Success: {result.success}\n"
+    if result.error:
+        response_text += f"Error: {result.error}\n"
+    
+    return [types.TextContent(type="text", text=response_text)]
+
+async def _handle_gpio_blink(arguments: dict, cfg) -> list[types.TextContent]:
+    """Handle GPIO blink tool"""
+    req = GPIOBlinkRequest(**arguments)
+    
+    if req.target not in cfg.targets:
+        available_targets = ", ".join(cfg.targets.keys())
+        return [types.TextContent(
+            type="text",
+            text=f"Error: Unknown target '{req.target}'. Available targets: {available_targets}"
+        )]
+    
+    result = gpio_blink(req)
+    
+    response_text = f"GPIO Blink\n"
+    response_text += f"Pin: {req.pin}\n"
+    response_text += f"Count: {req.count}\n"
+    response_text += f"On Time: {req.on_time}s\n"
+    response_text += f"Off Time: {req.off_time}s\n"
+    response_text += f"Mode: {req.mode or 'default'}\n"
+    response_text += f"Target: {req.target} ({cfg.targets[req.target].host})\n"
+    response_text += f"Success: {result.ok}\n"
+    if result.error:
+        response_text += f"Error: {result.error}\n"
+    if result.result:
+        response_text += f"Result: {result.result}\n"
+    
+    return [types.TextContent(type="text", text=response_text)]
+
+async def _handle_macro_run(arguments: dict, cfg) -> list[types.TextContent]:
+    """Handle GPIO macro run tool"""
+    req = GPIOMacroRequest(**arguments)
+    
+    if req.target not in cfg.targets:
+        available_targets = ", ".join(cfg.targets.keys())
+        return [types.TextContent(
+            type="text",
+            text=f"Error: Unknown target '{req.target}'. Available targets: {available_targets}"
+        )]
+    
+    result = macro_run(req)
+    
+    response_text = f"GPIO Macro Run\n"
+    response_text += f"Steps: {len(req.steps)} operations\n"
+    response_text += f"Target: {req.target} ({cfg.targets[req.target].host})\n"
+    response_text += f"Success: {result.ok}\n"
+    if result.error:
+        response_text += f"Error: {result.error}\n"
+    if result.result:
+        response_text += f"Result: {result.result}\n"
     
     return [types.TextContent(type="text", text=response_text)]
 

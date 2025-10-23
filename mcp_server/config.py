@@ -64,9 +64,13 @@ class AllowlistConfig(BaseModel):
 class AppConfig(BaseModel):
     targets: Dict[str, TargetConfig] = Field(default_factory=dict)
 
+class GPIOConfig(BaseModel):
+    targets: Dict[str, Any] = Field(default_factory=dict)
+
 class PolicyConfig(BaseModel):
     security: SecurityConfig = Field(default_factory=SecurityConfig)
     allowlist: AllowlistConfig = Field(default_factory=AllowlistConfig)
+    gpio: GPIOConfig = Field(default_factory=GPIOConfig)
 
 def load_config(path: str = CONFIG_PATH) -> AppConfig:
     if not os.path.exists(path):
