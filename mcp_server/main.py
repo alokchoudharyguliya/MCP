@@ -153,13 +153,14 @@ from __future__ import annotations
 
 import logging
 from fastapi import FastAPI, HTTPException, Request
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import Any, Dict
 
 from .logging_setup import setup_logging
-from .config import load_policies
-from .security import build_cors, extract_token, verify_auth, enforce_rate_limit
-from .allowlist import tool_allowed, ssh_exec_allowed, refresh_policies
+# from .config import load_policies
+# from .security import build_cors, extract_token, verify_auth, enforce_rate_limit
+# from .allowlist import tool_allowed, ssh_exec_allowed, refresh_policies
 
 from .tools.gpio_tools import (
     gpio_write, GPIOWriteRequest, TOOL_GPIO_WRITE,
@@ -194,8 +195,17 @@ setup_logging("INFO")
 log = logging.getLogger("mcp.main")
 app = FastAPI(title="MCP Pi Tool Server", version="0.3.0")
 
+# Add CORS middleware to handle OPTIONS requests
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Allow all origins for OpenAPI compatibility
+    allow_credentials=True,
+    allow_methods=["*"],  # Allow all HTTP methods
+    allow_headers=["*"],  # Allow all headers
+)
+
 # CORS
-build_cors(app)
+# build_cors(app)
 
 class ToolCall(BaseModel):
     name: str
@@ -204,6 +214,21 @@ class ToolCall(BaseModel):
 def _audit(event: str, extra: Dict[str, Any]):
     # Structured audit logging with redaction handled by formatter
     log.info(event, extra={"extra": extra})
+
+def _validate_tool_args(tool_name: str, args: Dict[str, Any], required_fields: list[str]) -> None:
+    """Validate that required fields are present in tool arguments"""
+    if not args:
+        raise HTTPException(
+            status_code=400,
+            detail=f"{tool_name} requires parameters: {', '.join(required_fields)}. Received empty request."
+        )
+    
+    missing_fields = [field for field in required_fields if field not in args]
+    if missing_fields:
+        raise HTTPException(
+            status_code=400,
+            detail=f"{tool_name} missing required parameters: {', '.join(missing_fields)}. Received: {list(args.keys())}"
+        )
 
 # @app.middleware("http")
 # async def auth_and_rate_limit(request: Request, call_next):
@@ -249,7 +274,7 @@ TOOL_GPIO_BLINK,
 TOOL_GPIO_MACRO_RUN,
         TOOL_DEPLOY_HOOK,
     ]
-    # filtered = [t for t in available if tool_allowed(t["name"], target=None)]
+    # # filtered = [t for t in available if tool_allowed(t["name"], target=None)]
     return {"tools": available}
 
 @app.post("/tools")
@@ -258,20 +283,31 @@ def call_tool(body: ToolCall, request: Request):
     args = body.arguments or {}
     target = args.get("target")
 
+    # Log incoming request for debugging
+    _audit("tool_call_received", {
+        "tool": name, 
+        "target": target, 
+        "args_keys": list(args.keys()),
+        "args_count": len(args),
+        "user_agent": request.headers.get("user-agent", "unknown"),
+        "content_type": request.headers.get("content-type", "unknown")
+    })
+
     # # Enforce tool allowlist
-    # if not tool_allowed(name, target=target):
-    #     _audit("tool_blocked", {"tool": name, "target": target})
-    #     raise HTTPException(status_code=403, detail="Tool not allowed by policy")
+    # # if not tool_allowed(name, target=target):
+    # #     _audit("tool_blocked", {"tool": name, "target": target})
+    # #     raise HTTPException(status_code=403, detail="Tool not allowed by policy")
 
     # # Extra policy: gate ssh_exec content
-    # if name == "ssh_exec":
-    #     cmd = args.get("command", "")
-    #     if not ssh_exec_allowed(cmd):
-    #         _audit("ssh_exec_blocked", {"target": target, "command": cmd})
-    #         raise HTTPException(status_code=403, detail="Command not allowed by policy")
+    # # if name == "ssh_exec":
+    # #     cmd = args.get("command", "")
+    # #     if not ssh_exec_allowed(cmd):
+    # #         _audit("ssh_exec_blocked", {"target": target, "command": cmd})
+    # #         raise HTTPException(status_code=403, detail="Command not allowed by policy")
 
     try:
         if name == "ssh_exec":
+            _validate_tool_args("ssh_exec", args, ["target", "command"])
             resp = ssh_exec(SSHExecRequest(**args)).model_dump()
         elif name == "scp_put":
             resp = scp_put(ScpPutRequest(**args)).model_dump()
@@ -576,6 +612,47 @@ def call_django_runserver(args: Dict[str, Any], request: Request):
     - `timeout`: Timeout in seconds (optional)
     """
     return call_tool(ToolCall(name="django_runserver_tmux", arguments=args), request)
+
+@app.get("/")
+def root():
+    """
+    **MCP Server Root**
+    
+    Welcome to the MCP Pi Tool Server. This server provides tools for
+    remote management of Raspberry Pi devices via SSH, GPIO control,
+    and various development operations.
+    """
+    return {
+        "name": "MCP Pi Tool Server",
+        "version": "0.3.0",
+        "description": "Remote management tools for Raspberry Pi devices",
+        "openapi_spec": "/openapi.json",
+        "docs": "/docs",
+        "redoc": "/redoc",
+        "health": "/health",
+        "tools": "/.well-known/mcp/tools",
+        "gpio_examples": "/gpio/examples"
+    }
+
+@app.get("/openapi.json")
+def openapi_spec():
+    """
+    **OpenAPI Specification**
+    
+    Returns the OpenAPI 3.0 specification for all available MCP tools.
+    This endpoint is compatible with OpenAPI tools and can be used to discover
+    and interact with the MCP server programmatically.
+    """
+    return app.openapi()
+
+@app.options("/openapi.json")
+def openapi_spec_options():
+    """
+    **OpenAPI Specification OPTIONS**
+    
+    Handles CORS preflight requests for the OpenAPI endpoint.
+    """
+    return {"message": "OK"}
 
 @app.get("/health")
 def health():

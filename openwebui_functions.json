@@ -1,0 +1,104 @@
+{
+  "functions": [
+    {
+      "name": "gpio_write",
+      "description": "Set a GPIO pin to HIGH or LOW on Raspberry Pi",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "target": {
+            "type": "string",
+            "description": "Target name (use 'pi-lan')"
+          },
+          "pin": {
+            "type": "integer",
+            "description": "GPIO pin number (17, 18, 22, 23, 24, 25)"
+          },
+          "value": {
+            "type": "integer",
+            "description": "Pin value: 1 for HIGH, 0 for LOW"
+          },
+          "mode": {
+            "type": "string",
+            "description": "Pin mode: BCM or BOARD (default: BCM)"
+          }
+        },
+        "required": ["target", "pin", "value"]
+      }
+    },
+    {
+      "name": "gpio_read",
+      "description": "Read the current state of a GPIO pin",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "target": {
+            "type": "string",
+            "description": "Target name (use 'pi-lan')"
+          },
+          "pin": {
+            "type": "integer",
+            "description": "GPIO pin number"
+          },
+          "mode": {
+            "type": "string",
+            "description": "Pin mode: BCM or BOARD"
+          }
+        },
+        "required": ["target", "pin"]
+      }
+    },
+    {
+      "name": "gpio_pwm",
+      "description": "Control PWM on a GPIO pin for motor/servo control",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "target": {
+            "type": "string",
+            "description": "Target name (use 'pi-lan')"
+          },
+          "pin": {
+            "type": "integer",
+            "description": "PWM-capable pin (18, 22, 23, 24, 25)"
+          },
+          "duty": {
+            "type": "number",
+            "description": "Duty cycle percentage (0.0 to 100.0)"
+          },
+          "freq": {
+            "type": "number",
+            "description": "Frequency in Hz (default: 1000.0)"
+          },
+          "duration": {
+            "type": "number",
+            "description": "Duration in seconds (default: 0.2)"
+          }
+        },
+        "required": ["target", "pin", "duty"]
+      }
+    },
+    {
+      "name": "ssh_exec",
+      "description": "Execute a command on remote Raspberry Pi",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "target": {
+            "type": "string",
+            "description": "Target name (use 'pi-lan')"
+          },
+          "command": {
+            "type": "string",
+            "description": "Shell command to execute"
+          },
+          "cwd": {
+            "type": "string",
+            "description": "Working directory (optional)"
+          }
+        },
+        "required": ["target", "command"]
+      }
+    }
+  ]
+}

@@ -1,3 +1,4 @@
+# POLICY SYSTEM DISABLED - All policy configurations commented out
 # security:
 #   api_keys:
 #     - "kklWgaHK48zQXttGl35YMQYZMgtntrqJ"
@@ -54,6 +55,7 @@
 #     #   - django_runserver_tmux
 
 
+# POLICY SYSTEM DISABLED - All policy configurations commented out
 # security:
 #   api_keys:
 #     - "kklWgaHK48zQXttGl35YMQYZMgtntrqJ"
@@ -120,6 +122,7 @@
 #     - "shutdown"
 #     - "reboot"
 
+# GPIO configuration kept active (not part of policy system)
 gpio:
   targets:
     pi-lan:

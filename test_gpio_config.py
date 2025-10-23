@@ -9,6 +9,7 @@ def test_gpio_config():
     print("=== Testing GPIO Configuration ===")
     
     try:
+        # Load policies (GPIO config only, security policies disabled)
         from mcp_server.config import load_policies
         policies = load_policies()
         

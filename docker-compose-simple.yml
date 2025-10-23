@@ -1,0 +1,29 @@
+services:
+  # Open WebUI with Ollama (unlimited tokens)
+  open-webui:
+    image: ghcr.io/open-webui/open-webui:ollama
+    container_name: open-webui
+    ports:
+      - "3000:8080"
+    volumes:
+      - ollama:/root/.ollama
+      - open-webui:/app/backend/data
+    restart: always
+    environment:
+      - OLLAMA_BASE_URL=http://ollama:11434
+    depends_on:
+      - ollama
+
+  # Ollama for local model hosting
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama:/root/.ollama
+    restart: always
+
+volumes:
+  ollama:
+  open-webui:

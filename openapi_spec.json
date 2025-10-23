@@ -1,0 +1,1279 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "MCP Tools API",
+    "description": "Remote SSH management, GPIO control, Git operations, Django, systemd, and tmux management via MCP protocol",
+    "version": "1.0.0",
+    "contact": {
+      "name": "MCP Server",
+      "url": "http://localhost:8000"
+    }
+  },
+  "servers": [
+    {
+      "url": "http://localhost:8000",
+      "description": "Local MCP Server"
+    }
+  ],
+  "paths": {
+    "/ssh/exec": {
+      "post": {
+        "operationId": "ssh_exec",
+        "summary": "Execute SSH Command",
+        "description": "Execute a shell command on a remote host via SSH",
+        "tags": ["SSH"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SSHExecRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Command executed successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SSHExecResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/scp/put": {
+      "post": {
+        "operationId": "scp_put",
+        "summary": "Upload File",
+        "description": "Upload a file to the target via SFTP (content as base64)",
+        "tags": ["File Transfer"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ScpPutRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "File uploaded successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScpPutResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/scp/get": {
+      "post": {
+        "operationId": "scp_get",
+        "summary": "Download File",
+        "description": "Download a file from the target via SFTP (content as base64)",
+        "tags": ["File Transfer"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ScpGetRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "File downloaded successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScpGetResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tmux/ensure": {
+      "post": {
+        "operationId": "tmux_ensure",
+        "summary": "Ensure Tmux Session",
+        "description": "Ensure a tmux session exists (create if needed)",
+        "tags": ["Tmux"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TmuxEnsureRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Session ensured",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TmuxResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tmux/send-keys": {
+      "post": {
+        "operationId": "tmux_send_keys",
+        "summary": "Send Keys to Tmux",
+        "description": "Send keys/command to a tmux session",
+        "tags": ["Tmux"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TmuxSendKeysRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Keys sent",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TmuxResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tmux/kill": {
+      "post": {
+        "operationId": "tmux_kill",
+        "summary": "Kill Tmux Session",
+        "description": "Kill a tmux session",
+        "tags": ["Tmux"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TmuxKillRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Session killed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TmuxResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/systemd/service": {
+      "post": {
+        "operationId": "systemd_service",
+        "summary": "Manage Systemd Service",
+        "description": "Manage a systemd service on the target",
+        "tags": ["Systemd"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ServiceActionRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Service action executed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ServiceResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/django/manage": {
+      "post": {
+        "operationId": "django_manage",
+        "summary": "Django Management Command",
+        "description": "Run python manage.py with given args",
+        "tags": ["Django"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DjangoManageRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Command executed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SSHExecResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/django/runserver": {
+      "post": {
+        "operationId": "django_runserver_tmux",
+        "summary": "Run Django Dev Server",
+        "description": "Run Django dev server in a tmux session",
+        "tags": ["Django"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DjangoRunserverRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Server started",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TmuxResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/git/status": {
+      "post": {
+        "operationId": "git_status",
+        "summary": "Git Status",
+        "description": "Get git repository status on remote host",
+        "tags": ["Git"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GitStatusRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Status retrieved",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GitStatusResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/git/checkout": {
+      "post": {
+        "operationId": "git_checkout",
+        "summary": "Git Checkout",
+        "description": "Checkout a git branch or tag on remote host",
+        "tags": ["Git"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GitCheckoutRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Branch checked out",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GitCheckoutResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/git/pull": {
+      "post": {
+        "operationId": "git_pull",
+        "summary": "Git Pull",
+        "description": "Pull latest changes from git repository",
+        "tags": ["Git"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GitPullRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Changes pulled",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GitPullResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/git/deploy-hook": {
+      "post": {
+        "operationId": "deploy_hook",
+        "summary": "Execute Deploy Hook",
+        "description": "Execute deployment hook script on remote host",
+        "tags": ["Git"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DeployHookRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Hook executed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeployHookResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/gpio/write": {
+      "post": {
+        "operationId": "gpio_write",
+        "summary": "Write GPIO Pin",
+        "description": "Set a GPIO pin HIGH/LOW on remote host",
+        "tags": ["GPIO"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GPIOWriteRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Pin written",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GPIOSimpleResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/gpio/read": {
+      "post": {
+        "operationId": "gpio_read",
+        "summary": "Read GPIO Pin",
+        "description": "Read from a GPIO pin on remote host",
+        "tags": ["GPIO"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GPIOReadRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Pin read",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GPIOSimpleResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/gpio/pwm": {
+      "post": {
+        "operationId": "gpio_pwm",
+        "summary": "GPIO PWM Control",
+        "description": "Set PWM on a GPIO pin on remote host",
+        "tags": ["GPIO"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GPIOPWMRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "PWM set",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GPIOSimpleResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/gpio/blink": {
+      "post": {
+        "operationId": "gpio_blink",
+        "summary": "Blink GPIO Pin",
+        "description": "Blink a GPIO pin (LED) a specified number of times",
+        "tags": ["GPIO"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GPIOBlinkRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Blink completed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GPIOSimpleResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/gpio/macro": {
+      "post": {
+        "operationId": "macro_run",
+        "summary": "Run GPIO Macro",
+        "description": "Run a sequence of GPIO operations",
+        "tags": ["GPIO"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GPIOMacroRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Macro executed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GPIOSimpleResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "SSHExecRequest": {
+        "type": "object",
+        "required": ["target", "command"],
+        "properties": {
+          "target": {
+            "type": "string",
+            "description": "Target name from config.targets (e.g., 'pi-lan')"
+          },
+          "command": {
+            "type": "string",
+            "description": "Shell command to run on remote host"
+          },
+          "cwd": {
+            "type": "string",
+            "description": "Working directory on remote host"
+          },
+          "env": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Environment variables as key-value pairs"
+          },
+          "timeout": {
+            "type": "integer",
+            "description": "Timeout in seconds"
+          }
+        }
+      },
+      "SSHExecResponse": {
+        "type": "object",
+        "required": ["stdout", "stderr", "exit_code"],
+        "properties": {
+          "stdout": {
+            "type": "string",
+            "description": "Standard output from command"
+          },
+          "stderr": {
+            "type": "string",
+            "description": "Standard error from command"
+          },
+          "exit_code": {
+            "type": "integer",
+            "description": "Exit code from command"
+          }
+        }
+      },
+      "ScpPutRequest": {
+        "type": "object",
+        "required": ["target", "remote_path", "content_b64"],
+        "properties": {
+          "target": {
+            "type": "string",
+            "description": "Target name from config.targets"
+          },
+          "remote_path": {
+            "type": "string",
+            "description": "Absolute path to write on remote host"
+          },
+          "content_b64": {
+            "type": "string",
+            "description": "Base64-encoded file content"
+          },
+          "mode": {
+            "type": "integer",
+            "description": "Octal file mode, e.g., 0o644"
+          }
+        }
+      },
+      "ScpPutResponse": {
+        "type": "object",
+        "properties": {
+          "remote_path": {
+            "type": "string"
+          },
+          "size": {
+            "type": "integer"
+          },
+          "mode": {
+            "type": "integer"
+          }
+        }
+      },
+      "ScpGetRequest": {
+        "type": "object",
+        "required": ["target", "remote_path"],
+        "properties": {
+          "target": {
+            "type": "string",
+            "description": "Target name from config.targets"
+          },
+          "remote_path": {
+            "type": "string",
+            "description": "Absolute path of file to read from remote host"
+          }
+        }
+      },
+      "ScpGetResponse": {
+        "type": "object",
+        "properties": {
+          "remote_path": {
+            "type": "string"
+          },
+          "content_b64": {
+            "type": "string",
+            "description": "Base64-encoded file content"
+          }
+        }
+      },
+      "TmuxEnsureRequest": {
+        "type": "object",
+        "required": ["target", "session"],
+        "properties": {
+          "target": {
+            "type": "string",
+            "description": "Target name from config.targets"
+          },
+          "session": {
+            "type": "string",
+            "description": "Session name (suffix); will be prefixed with 'mcp_'"
+          },
+          "cwd": {
+            "type": "string",
+            "description": "Working directory for the session"
+          }
+        }
+      },
+      "TmuxSendKeysRequest": {
+        "type": "object",
+        "required": ["target", "session", "keys"],
+        "properties": {
+          "target": {
+            "type": "string",
+            "description": "Target name from config.targets"
+          },
+          "session": {
+            "type": "string",
+            "description": "Session name (suffix); will be prefixed with 'mcp_'"
+          },
+          "keys": {
+            "type": "string",
+            "description": "Command to send; will append Enter by default"
+          },
+          "enter": {
+            "type": "boolean",
+            "description": "Whether to append Enter key (default: true)",
+            "default": true
+          }
+        }
+      },
+      "TmuxKillRequest": {
+        "type": "object",
+        "required": ["target", "session"],
+        "properties": {
+          "target": {
+            "type": "string",
+            "description": "Target name from config.targets"
+          },
+          "session": {
+            "type": "string",
+            "description": "Session name (suffix); will be prefixed with 'mcp_'"
+          }
+        }
+      },
+      "TmuxResponse": {
+        "type": "object",
+        "required": ["ok", "session", "detail"],
+        "properties": {
+          "ok": {
+            "type": "boolean",
+            "description": "Whether operation succeeded"
+          },
+          "session": {
+            "type": "string",
+            "description": "Full session name"
+          },
+          "detail": {
+            "type": "string",
+            "description": "Additional details or error message"
+          }
+        }
+      },
+      "ServiceActionRequest": {
+        "type": "object",
+        "required": ["target", "name", "action"],
+        "properties": {
+          "target": {
+            "type": "string",
+            "description": "Target name from config.targets"
+          },
+          "name": {
+            "type": "string",
+            "description": "systemd service name (e.g., myproj.service)"
+          },
+          "action": {
+            "type": "string",
+            "enum": ["start", "stop", "restart", "reload", "enable", "disable", "status"],
+            "description": "Action to perform on the service"
+          }
+        }
+      },
+      "ServiceResponse": {
+        "type": "object",
+        "required": ["ok", "name", "action", "exit_code"],
+        "properties": {
+          "ok": {
+            "type": "boolean"
+          },
+          "name": {
+            "type": "string"
+          },
+          "action": {
+            "type": "string"
+          },
+          "stdout": {
+            "type": "string"
+          },
+          "stderr": {
+            "type": "string"
+          },
+          "exit_code": {
+            "type": "integer"
+          }
+        }
+      },
+      "DjangoManageRequest": {
+        "type": "object",
+        "required": ["target", "project_dir", "manage_args"],
+        "properties": {
+          "target": {
+            "type": "string",
+            "description": "Target name from config.targets"
+          },
+          "project_dir": {
+            "type": "string",
+            "description": "Remote project working directory (contains manage.py)"
+          },
+          "manage_args": {
+            "type": "string",
+            "description": "Arguments to manage.py, e.g., 'migrate' or 'collectstatic --noinput'"
+          },
+          "venv_path": {
+            "type": "string",
+            "description": "Remote virtualenv bin path"
+          },
+          "env": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Environment variables as key-value pairs"
+          },
+          "timeout": {
+            "type": "integer",
+            "description": "Timeout in seconds"
+          }
+        }
+      },
+      "DjangoRunserverRequest": {
+        "type": "object",
+        "required": ["target", "project_dir", "session"],
+        "properties": {
+          "target": {
+            "type": "string",
+            "description": "Target name from config.targets"
+          },
+          "project_dir": {
+            "type": "string",
+            "description": "Remote project working directory (contains manage.py)"
+          },
+          "session": {
+            "type": "string",
+            "description": "Tmux session suffix to use (will be prefixed with 'mcp_')"
+          },
+          "host": {
+            "type": "string",
+            "description": "Host to bind to (default: 0.0.0.0)",
+            "default": "0.0.0.0"
+          },
+          "port": {
+            "type": "integer",
+            "description": "Port to bind to (default: 8000)",
+            "default": 8000
+          },
+          "extra_args": {
+            "type": "string",
+            "description": "Extra args, e.g., --settings=..."
+          },
+          "venv_path": {
+            "type": "string",
+            "description": "Remote virtualenv bin path"
+          },
+          "env": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Environment variables as key-value pairs"
+          },
+          "timeout": {
+            "type": "integer",
+            "description": "Timeout in seconds"
+          }
+        }
+      },
+      "GitStatusRequest": {
+        "type": "object",
+        "required": ["target", "project_dir"],
+        "properties": {
+          "target": {
+            "type": "string",
+            "description": "Target name from config.targets"
+          },
+          "project_dir": {
+            "type": "string",
+            "description": "Remote project directory containing the git repo"
+          },
+          "short": {
+            "type": "boolean",
+            "description": "If true, runs 'git status --short --branch' else full 'git status'",
+            "default": true
+          }
+        }
+      },
+      "GitStatusResponse": {
+        "type": "object",
+        "required": ["stdout", "stderr", "exit_code"],
+        "properties": {
+          "stdout": {
+            "type": "string"
+          },
+          "stderr": {
+            "type": "string"
+          },
+          "exit_code": {
+            "type": "integer"
+          }
+        }
+      },
+      "GitCheckoutRequest": {
+        "type": "object",
+        "required": ["target", "project_dir", "ref"],
+        "properties": {
+          "target": {
+            "type": "string",
+            "description": "Target name from config.targets"
+          },
+          "project_dir": {
+            "type": "string",
+            "description": "Remote project directory containing the git repo"
+          },
+          "ref": {
+            "type": "string",
+            "description": "Branch or tag to checkout, e.g., 'main' or 'v1.2.3'"
+          },
+          "create_branch": {
+            "type": "boolean",
+            "description": "If true, create a new branch from current HEAD",
+            "default": false
+          }
+        }
+      },
+      "GitCheckoutResponse": {
+        "type": "object",
+        "required": ["stdout", "stderr", "exit_code", "ref"],
+        "properties": {
+          "stdout": {
+            "type": "string"
+          },
+          "stderr": {
+            "type": "string"
+          },
+          "exit_code": {
+            "type": "integer"
+          },
+          "ref": {
+            "type": "string"
+          }
+        }
+      },
+      "GitPullRequest": {
+        "type": "object",
+        "required": ["target", "project_dir"],
+        "properties": {
+          "target": {
+            "type": "string",
+            "description": "Target name from config.targets"
+          },
+          "project_dir": {
+            "type": "string",
+            "description": "Remote project directory containing the git repo"
+          },
+          "remote": {
+            "type": "string",
+            "description": "Remote name to pull from",
+            "default": "origin"
+          },
+          "branch": {
+            "type": "string",
+            "description": "Branch to pull; if omitted, pulls current branch"
+          },
+          "fetch_all": {
+            "type": "boolean",
+            "description": "If true, runs 'git fetch --all --prune' first",
+            "default": false
+          },
+          "reset_hard": {
+            "type": "boolean",
+            "description": "If true, 'git reset --hard <remote>/<branch>' after fetch",
+            "default": false
+          }
+        }
+      },
+      "GitPullResponse": {
+        "type": "object",
+        "required": ["stdout", "stderr", "exit_code"],
+        "properties": {
+          "stdout": {
+            "type": "string"
+          },
+          "stderr": {
+            "type": "string"
+          },
+          "exit_code": {
+            "type": "integer"
+          },
+          "branch": {
+            "type": "string"
+          }
+        }
+      },
+      "DeployHookRequest": {
+        "type": "object",
+        "required": ["target", "project_dir"],
+        "properties": {
+          "target": {
+            "type": "string",
+            "description": "Target name from config.targets"
+          },
+          "project_dir": {
+            "type": "string",
+            "description": "Remote project directory containing deploy.sh"
+          },
+          "script": {
+            "type": "string",
+            "description": "Hook script filename inside project_dir",
+            "default": "deploy.sh"
+          },
+          "env": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Extra environment variables"
+          },
+          "timeout": {
+            "type": "integer",
+            "description": "Timeout seconds for the full deploy",
+            "default": 600
+          }
+        }
+      },
+      "DeployHookResponse": {
+        "type": "object",
+        "required": ["stdout", "stderr", "exit_code", "script_path"],
+        "properties": {
+          "stdout": {
+            "type": "string"
+          },
+          "stderr": {
+            "type": "string"
+          },
+          "exit_code": {
+            "type": "integer"
+          },
+          "script_path": {
+            "type": "string"
+          }
+        }
+      },
+      "GPIOWriteRequest": {
+        "type": "object",
+        "required": ["target", "pin", "value"],
+        "properties": {
+          "target": {
+            "type": "string",
+            "description": "Target name from config.targets"
+          },
+          "pin": {
+            "type": "integer",
+            "description": "GPIO pin number"
+          },
+          "value": {
+            "oneOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "boolean"
+              }
+            ],
+            "description": "Value to write (0 or 1, false or true)"
+          },
+          "mode": {
+            "type": "string",
+            "enum": ["BCM", "BOARD"],
+            "description": "GPIO mode"
+          },
+          "direction": {
+            "type": "string",
+            "enum": ["in", "out"],
+            "description": "GPIO direction",
+            "default": "out"
+          },
+          "pull": {
+            "type": "string",
+            "enum": ["up", "down", "off"],
+            "description": "Pull up/down/off for input mode"
+          }
+        }
+      },
+      "GPIOReadRequest": {
+        "type": "object",
+        "required": ["target", "pin"],
+        "properties": {
+          "target": {
+            "type": "string",
+            "description": "Target name from config.targets"
+          },
+          "pin": {
+            "type": "integer",
+            "description": "GPIO pin number"
+          },
+          "mode": {
+            "type": "string",
+            "enum": ["BCM", "BOARD"],
+            "description": "GPIO mode"
+          },
+          "direction": {
+            "type": "string",
+            "enum": ["in", "out"],
+            "description": "GPIO direction",
+            "default": "in"
+          },
+          "pull": {
+            "type": "string",
+            "enum": ["up", "down", "off"],
+            "description": "Pull up/down/off"
+          }
+        }
+      },
+      "GPIOPWMRequest": {
+        "type": "object",
+        "required": ["target", "pin", "duty"],
+        "properties": {
+          "target": {
+            "type": "string",
+            "description": "Target name from config.targets"
+          },
+          "pin": {
+            "type": "integer",
+            "description": "GPIO pin number"
+          },
+          "duty": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 100,
+            "description": "Duty cycle percentage (0-100)"
+          },
+          "freq": {
+            "type": "number",
+            "description": "PWM frequency in Hz",
+            "default": 1000.0
+          },
+          "duration": {
+            "type": "number",
+            "description": "Seconds to run then stop",
+            "default": 0.2
+          },
+          "mode": {
+            "type": "string",
+            "enum": ["BCM", "BOARD"],
+            "description": "GPIO mode"
+          }
+        }
+      },
+      "GPIOBlinkRequest": {
+        "type": "object",
+        "required": ["target", "pin"],
+        "properties": {
+          "target": {
+            "type": "string",
+            "description": "Target name from config.targets"
+          },
+          "pin": {
+            "type": "integer",
+            "description": "GPIO pin number"
+          },
+          "count": {
+            "type": "integer",
+            "description": "Number of blinks",
+            "default": 5,
+            "minimum": 1
+          },
+          "on_time": {
+            "type": "number",
+            "description": "Seconds LED is ON",
+            "default": 0.5
+          },
+          "off_time": {
+            "type": "number",
+            "description": "Seconds LED is OFF",
+            "default": 0.5
+          },
+          "mode": {
+            "type": "string",
+            "enum": ["BCM", "BOARD"],
+            "description": "GPIO mode"
+          }
+        }
+      },
+      "GPIOMacroRequest": {
+        "type": "object",
+        "required": ["target", "steps"],
+        "properties": {
+          "target": {
+            "type": "string",
+            "description": "Target name from config.targets"
+          },
+          "steps": {
+            "type": "array",
+            "description": "Array of GPIO operations to execute",
+            "items": {
+              "type": "object",
+              "required": ["op", "data"],
+              "properties": {
+                "op": {
+                  "type": "string",
+                  "enum": ["write", "read", "pwm", "blink"],
+                  "description": "Operation type"
+                },
+                "data": {
+                  "type": "object",
+                  "description": "Operation-specific data"
+                }
+              }
+            }
+          },
+          "mode": {
+            "type": "string",
+            "enum": ["BCM", "BOARD"],
+            "description": "GPIO mode"
+          }
+        }
+      },
+      "GPIOSimpleResponse": {
+        "type": "object",
+        "required": ["ok"],
+        "properties": {
+          "ok": {
+            "type": "boolean",
+            "description": "Whether operation succeeded"
+          },
+          "result": {
+            "type": "object",
+            "description": "Result data if successful"
+          },
+          "error": {
+            "type": "string",
+            "description": "Error message if failed"
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "BearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "description": "API Key authentication"
+      }
+    }
+  },
+  "security": [
+    {
+      "BearerAuth": []
+    }
+  ],
+  "tags": [
+    {
+      "name": "SSH",
+      "description": "Remote SSH command execution"
+    },
+    {
+      "name": "File Transfer",
+      "description": "SFTP file upload and download"
+    },
+    {
+      "name": "Tmux",
+      "description": "Terminal multiplexer management"
+    },
+    {
+      "name": "Systemd",
+      "description": "System service management"
+    },
+    {
+      "name": "Django",
+      "description": "Django application management"
+    },
+    {
+      "name": "Git",
+      "description": "Git repository operations"
+    },
+    {
+      "name": "GPIO",
+      "description": "Raspberry Pi GPIO control"
+    }
+  ]
+}

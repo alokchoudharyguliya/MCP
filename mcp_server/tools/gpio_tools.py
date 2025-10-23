@@ -17,14 +17,21 @@ def _b64(obj: Dict[str, Any]) -> str:
     return base64.b64encode(raw).decode("utf-8")
 
 def _get_gpio_policy(target: str) -> Dict[str, Any]:
-    # Load policies directly since GPIO config is in policies.yaml
-    from ..config import load_policies
-    policies = load_policies()
-    
-    # Check if policies has gpio config
-    if hasattr(policies, 'gpio') and policies.gpio and hasattr(policies.gpio, 'targets'):
-        gpio_cfg = policies.gpio.targets.get(target, {})
-        return gpio_cfg
+    # Load GPIO config (separate from security policies)
+    # GPIO configuration is hardware safety, not security policy
+    try:
+        from ..config import load_policies
+        policies = load_policies()
+        
+        # Check if policies has gpio config
+        if hasattr(policies, 'gpio') and policies.gpio and hasattr(policies.gpio, 'targets'):
+            gpio_cfg = policies.gpio.targets.get(target, {})
+            return gpio_cfg
+    except Exception as e:
+        # If policy loading fails, log and continue with empty config
+        import logging
+        log = logging.getLogger("mcp.gpio")
+        log.warning(f"Failed to load GPIO policy for {target}: {e}")
     
     # Return empty config if no GPIO policy found
     return {}

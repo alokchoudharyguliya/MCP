@@ -1,0 +1,185 @@
+{
+  "name": "MCP Pi Tools",
+  "description": "Raspberry Pi GPIO and system control tools",
+  "base_url": "http://localhost:8000",
+  "functions": [
+    {
+      "name": "gpio_write",
+      "description": "Set a GPIO pin to HIGH or LOW on Raspberry Pi",
+      "endpoint": "/tools/gpio/write",
+      "method": "POST",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "target": {
+            "type": "string",
+            "description": "Target name (use 'pi-lan')",
+            "default": "pi-lan"
+          },
+          "pin": {
+            "type": "integer",
+            "description": "GPIO pin number (17, 18, 22, 23, 24, 25)"
+          },
+          "value": {
+            "type": "integer",
+            "description": "Pin value: 1 for HIGH, 0 for LOW"
+          },
+          "mode": {
+            "type": "string",
+            "description": "Pin mode: BCM or BOARD (default: BCM)",
+            "default": "BCM"
+          }
+        },
+        "required": ["pin", "value"]
+      }
+    },
+    {
+      "name": "gpio_read",
+      "description": "Read the current state of a GPIO pin",
+      "endpoint": "/tools/gpio/read",
+      "method": "POST",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "target": {
+            "type": "string",
+            "description": "Target name (use 'pi-lan')",
+            "default": "pi-lan"
+          },
+          "pin": {
+            "type": "integer",
+            "description": "GPIO pin number"
+          },
+          "mode": {
+            "type": "string",
+            "description": "Pin mode: BCM or BOARD",
+            "default": "BCM"
+          }
+        },
+        "required": ["pin"]
+      }
+    },
+    {
+      "name": "gpio_pwm",
+      "description": "Control PWM on a GPIO pin for motor/servo control",
+      "endpoint": "/tools/gpio/pwm",
+      "method": "POST",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "target": {
+            "type": "string",
+            "description": "Target name (use 'pi-lan')",
+            "default": "pi-lan"
+          },
+          "pin": {
+            "type": "integer",
+            "description": "PWM-capable pin (18, 22, 23, 24, 25)"
+          },
+          "duty": {
+            "type": "number",
+            "description": "Duty cycle percentage (0.0 to 100.0)"
+          },
+          "freq": {
+            "type": "number",
+            "description": "Frequency in Hz (default: 1000.0)",
+            "default": 1000.0
+          },
+          "duration": {
+            "type": "number",
+            "description": "Duration in seconds (default: 0.2)",
+            "default": 0.2
+          }
+        },
+        "required": ["pin", "duty"]
+      }
+    },
+    {
+      "name": "gpio_blink",
+      "description": "Blink a GPIO pin (LED) a specified number of times",
+      "endpoint": "/tools/gpio/blink",
+      "method": "POST",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "target": {
+            "type": "string",
+            "description": "Target name (use 'pi-lan')",
+            "default": "pi-lan"
+          },
+          "pin": {
+            "type": "integer",
+            "description": "GPIO pin number"
+          },
+          "count": {
+            "type": "integer",
+            "description": "Number of blinks (default: 5)",
+            "default": 5
+          },
+          "on_time": {
+            "type": "number",
+            "description": "Seconds LED is ON (default: 0.5)",
+            "default": 0.5
+          },
+          "off_time": {
+            "type": "number",
+            "description": "Seconds LED is OFF (default: 0.5)",
+            "default": 0.5
+          }
+        },
+        "required": ["pin"]
+      }
+    },
+    {
+      "name": "ssh_exec",
+      "description": "Execute a command on remote Raspberry Pi",
+      "endpoint": "/tools/ssh_exec",
+      "method": "POST",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "target": {
+            "type": "string",
+            "description": "Target name (use 'pi-lan')",
+            "default": "pi-lan"
+          },
+          "command": {
+            "type": "string",
+            "description": "Shell command to execute"
+          },
+          "cwd": {
+            "type": "string",
+            "description": "Working directory (optional)"
+          }
+        },
+        "required": ["command"]
+      }
+    },
+    {
+      "name": "systemd_service",
+      "description": "Manage systemd services on Raspberry Pi",
+      "endpoint": "/tools/systemd",
+      "method": "POST",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "target": {
+            "type": "string",
+            "description": "Target name (use 'pi-lan')",
+            "default": "pi-lan"
+          },
+          "name": {
+            "type": "string",
+            "description": "Service name (e.g., 'nginx.service')"
+          },
+          "action": {
+            "type": "string",
+            "description": "Action: start, stop, restart, enable, disable, status",
+            "enum": ["start", "stop", "restart", "enable", "disable", "status"]
+          }
+        },
+        "required": ["name", "action"]
+      }
+    }
+  ]
+}
